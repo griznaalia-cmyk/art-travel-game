@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ART Travel Game – Katalog Rental Konsol</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+/* ===================== RESET & ROOT ===================== */
+:root {
+  --bg:#0a0a12;--bg2:#0f0f1e;--card:#13132a;--gold:#f5c518;
+  --accent:#00e5ff;--accent2:#ff4fa3;--green:#00e676;--orange:#ff6d00;
+  --red:#e4000f;--text:#f0f0ff;--muted:#8888aa;--radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;overflow-x:hidden}
+
+/* ===================== ADMIN BAR ===================== */
+#admin-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  background:linear-gradient(135deg,#1a0f3a,#0a0a20);
+  border-top:2px solid var(--accent);
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  padding:10px 20px;flex-wrap:wrap;
+}
+#admin-bar .ab-label{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;color:var(--accent);opacity:.7}
+.ab-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;
+  transition:transform .15s,opacity .15s;
+}
+.ab-btn:hover{transform:translateY(-2px);opacity:.85}
+.ab-btn.primary{background:linear-gradient(135deg,var(--accent),#0077ff);color:#000}
+.ab-btn.danger{background:linear-gradient(135deg,#ff4444,#cc0000);color:#fff}
+.ab-btn.neutral{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.1)}
+#admin-status{font-size:12px;color:var(--green);font-weight:800;display:none}
+
+/* ===================== MODAL OVERLAY ===================== */
+#modal-overlay{
+  position:fixed;inset:0;z-index:10000;
+  background:rgba(0,0,0,.85);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+#modal-overlay.open{display:flex}
+.modal{
+  background:#13132a;border-radius:20px;border:1.5px solid rgba(0,229,255,.2);
+  width:100%;max-width:820px;max-height:90vh;overflow-y:auto;
+  padding:32px 28px;position:relative;
+}
+.modal-close{
+  position:absolute;top:16px;right:16px;
+  background:rgba(255,255,255,.07);border:none;color:var(--text);
+  width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;
+  display:flex;align-items:center;justify-content:center;
+}
+.modal-close:hover{background:rgba(255,79,163,.2)}
+.modal h2{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--accent);margin-bottom:6px}
+.modal p.sub{color:var(--muted);font-size:13px;margin-bottom:24px}
+
+/* tabs */
+.tab-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,.07);padding-bottom:12px}
+.tab{
+  padding:7px 16px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;
+  background:rgba(255,255,255,.05);color:var(--muted);transition:.15s;
+}
+.tab.active{background:linear-gradient(135deg,var(--accent),#0077ff);color:#000}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* form elements */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.form-group input,.form-group textarea,.form-group select{
+  width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Nunito',sans-serif;font-size:14px;
+  outline:none;transition:border-color .2s;
+}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--accent)}
+.form-group textarea{min-height:120px;resize:vertical;line-height:1.6}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.save-btn{
+  background:linear-gradient(135deg,var(--green),#00a85a);color:#000;
+  border:none;padding:12px 28px;border-radius:10px;font-family:'Nunito',sans-serif;
+  font-weight:900;font-size:14px;cursor:pointer;transition:.15s;width:100%;margin-top:8px;
+}
+.save-btn:hover{opacity:.85;transform:translateY(-1px)}
+
+/* price editor */
+.price-row{
+  display:grid;grid-template-columns:1fr 120px 120px;gap:10px;
+  align-items:center;background:rgba(255,255,255,.03);
+  border-radius:10px;padding:10px 14px;margin-bottom:8px;
+  border:1px solid rgba(255,255,255,.06);
+}
+.price-row .console-lbl{font-weight:800;font-size:14px}
+
+/* game list editor */
+.game-editor-section{margin-bottom:28px}
+.game-editor-section h4{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;
+  color:var(--accent);margin-bottom:12px;padding-bottom:8px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.game-list-edit{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.game-item-row{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.03);border-radius:8px;padding:8px 10px;
+  border:1px solid rgba(255,255,255,.05);
+}
+.game-item-row input{
+  flex:1;background:transparent;border:none;color:var(--text);
+  font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;outline:none;
+}
+.game-item-row input:focus{color:var(--accent)}
+.del-btn{
+  background:rgba(255,60,60,.15);border:none;color:#ff4444;
+  width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.del-btn:hover{background:rgba(255,60,60,.3)}
+.add-game-btn{
+  background:rgba(0,229,255,.1);border:1px dashed rgba(0,229,255,.3);
+  color:var(--accent);border-radius:8px;padding:8px;width:100%;
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;
+  transition:.15s;
+}
+.add-game-btn:hover{background:rgba(0,229,255,.18)}
+
+/* login screen */
+#login-screen{
+  position:fixed;inset:0;z-index:11000;
+  background:linear-gradient(135deg,#0a0a12,#1a0f3a);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+}
+#login-screen.open{display:flex}
+.login-box{
+  background:#13132a;border-radius:20px;border:1.5px solid rgba(0,229,255,.2);
+  padding:40px 36px;width:100%;max-width:400px;text-align:center;
+}
+.login-box h2{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);margin-bottom:4px}
+.login-box p{color:var(--muted);font-size:13px;margin-bottom:28px}
+.login-box input{
+  width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:12px 16px;color:var(--text);font-family:'Nunito',sans-serif;
+  font-size:15px;outline:none;margin-bottom:12px;
+}
+.login-box input:focus{border-color:var(--accent)}
+.login-btn{
+  width:100%;background:linear-gradient(135deg,var(--accent),#0077ff);
+  color:#000;border:none;border-radius:10px;padding:13px;
+  font-family:'Nunito',sans-serif;font-weight:900;font-size:15px;cursor:pointer;margin-top:4px;
+}
+.login-btn:hover{opacity:.85}
+.login-err{color:#ff4444;font-size:13px;margin-top:10px;display:none}
+
+/* ===================== PUBLIC SITE ===================== */
+.hero{
+  position:relative;min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;
+  padding:60px 20px 100px;overflow:hidden;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,#1a0f3a 0%,#0a0a12 70%);
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle 300px at 15% 40%,rgba(0,229,255,.07) 0%,transparent 70%),
+             radial-gradient(circle 300px at 85% 60%,rgba(255,79,163,.07) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-grid{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,229,255,.04) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(0,229,255,.04) 1px,transparent 1px);
+  background-size:50px 50px;
+}
+.hero-badge{
+  display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#000;font-weight:900;font-size:11px;letter-spacing:3px;text-transform:uppercase;
+  padding:6px 18px;border-radius:50px;margin-bottom:24px;
+  animation:fadeDown .6s ease both;
+}
+.hero h1{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,12vw,120px);
+  line-height:.9;letter-spacing:2px;animation:fadeDown .7s ease .1s both;
+}
+.hero h1 span{
+  display:block;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-sub{font-size:16px;color:var(--muted);margin-top:20px;max-width:500px;line-height:1.6;animation:fadeDown .7s ease .2s both}
+.hero-contact{display:flex;gap:16px;margin-top:36px;flex-wrap:wrap;justify-content:center;animation:fadeDown .7s ease .3s both}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:50px;font-weight:800;font-size:14px;text-decoration:none;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.btn-wa{background:linear-gradient(135deg,#25d366,#128c7e);color:#fff}
+.btn-tt{background:linear-gradient(135deg,#ff0050,#ff6a00);color:#fff}
+
+.section{padding:80px 20px;max-width:1200px;margin:0 auto}
+.section-title{text-align:center;margin-bottom:50px}
+.section-title .eyebrow{font-size:11px;font-weight:800;letter-spacing:4px;text-transform:uppercase;margin-bottom:10px}
+.section-title h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,6vw,64px);line-height:1}
+.section-title p{color:var(--muted);margin-top:12px;font-size:15px;max-width:560px;margin-left:auto;margin-right:auto}
+
+/* pricing */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px}
+.price-card{
+  background:var(--card);border-radius:var(--radius);padding:28px 20px;
+  text-align:center;border:1.5px solid rgba(255,255,255,.06);
+  position:relative;overflow:hidden;transition:transform .25s,border-color .25s;
+}
+.price-card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.15)}
+.price-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.price-card.ps3::before{background:linear-gradient(90deg,#1a6bb5,#00e5ff)}
+.price-card.ps4::before{background:linear-gradient(90deg,#003087,#0070cc)}
+.price-card.ps5::before{background:linear-gradient(90deg,#ffffff,#aaaaff)}
+.price-card.nintendo::before{background:linear-gradient(90deg,#e4000f,#ff6d00)}
+.price-card.tv::before{background:linear-gradient(90deg,#00e676,#00bcd4)}
+.console-icon{font-size:42px;margin-bottom:12px;display:block}
+.console-name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.weekday-price{font-size:42px;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;line-height:1}
+.unit{font-size:13px;color:var(--muted);margin-top:4px}
+.divider{height:1px;background:rgba(255,255,255,.07);margin:16px 0}
+.weekend-label{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.weekend-price{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--gold)}
+.badge-stable{display:inline-block;background:rgba(0,230,118,.15);color:var(--green);border-radius:50px;font-size:10px;font-weight:800;padding:4px 12px;letter-spacing:1px;text-transform:uppercase;margin-top:4px}
+
+/* TV */
+.tv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.tv-card{background:var(--card);border-radius:var(--radius);padding:32px 28px;border:1.5px solid rgba(255,255,255,.06);transition:transform .25s;position:relative;overflow:hidden}
+.tv-card:hover{transform:translateY(-6px)}
+.tv-card.big{border-color:rgba(0,229,255,.3)}
+.tv-card.small{border-color:rgba(255,109,0,.3)}
+.tv-size{font-family:'Bebas Neue',sans-serif;font-size:72px;line-height:1}
+.tv-card.big .tv-size{color:var(--accent)}
+.tv-card.small .tv-size{color:var(--orange)}
+.tv-label{font-size:13px;color:var(--muted);margin-top:4px}
+.tv-price{font-family:'Bebas Neue',sans-serif;font-size:40px;margin-top:16px}
+.tv-card.big .tv-price{color:var(--accent)}
+.tv-card.small .tv-price{color:var(--orange)}
+.tv-desc{color:var(--muted);font-size:14px;margin-top:10px;line-height:1.6}
+
+/* catalog */
+.catalog-section{background:var(--bg2);padding:80px 20px}
+.catalog-inner{max-width:1200px;margin:0 auto}
+.console-catalog{margin-bottom:70px}
+.console-header{display:flex;align-items:center;gap:16px;margin-bottom:30px;padding-bottom:16px;border-bottom:1.5px solid rgba(255,255,255,.06)}
+.console-badge{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;padding:10px 22px;border-radius:10px;letter-spacing:2px}
+.badge-ps3{background:linear-gradient(135deg,#1a6bb5,#004a8f);color:#fff}
+.badge-ps4{background:linear-gradient(135deg,#003087,#0050c0);color:#fff}
+.badge-ps5{background:linear-gradient(135deg,#2a2a5a,#4a4aaa);color:#fff}
+.badge-nintendo{background:linear-gradient(135deg,#e4000f,#ff4400);color:#fff}
+.console-title-text{font-family:'Bebas Neue',sans-serif;font-size:32px}
+.console-count{margin-left:auto;color:var(--muted);font-size:13px;font-weight:700}
+.genre-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.genre-card{background:var(--card);border-radius:14px;padding:22px 20px;border:1px solid rgba(255,255,255,.05);transition:border-color .2s}
+.genre-card:hover{border-color:rgba(255,255,255,.12)}
+.genre-icon{font-size:22px;margin-bottom:6px}
+.genre-name{font-weight:900;font-size:13px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.game-list{list-style:none;display:flex;flex-direction:column;gap:0;margin-top:12px}
+.game-list li{display:flex;align-items:center;gap:10px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:#dde0ff;line-height:1.4;padding:6px 10px;border-radius:8px;transition:background .15s,color .15s,transform .15s;cursor:default;letter-spacing:.2px}
+.game-list li:hover{background:rgba(255,255,255,.06);transform:translateX(4px)}
+.game-list li .num{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;letter-spacing:1px;min-width:22px;text-align:right;flex-shrink:0;opacity:.55}
+.game-list li .dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;opacity:.45}
+.cat-ps3 .game-list li .num{color:#4db8ff}.cat-ps3 .game-list li .dot{background:#4db8ff}.cat-ps3 .game-list li:hover{color:#4db8ff}
+.cat-ps4 .game-list li .num{color:#6ec6ff}.cat-ps4 .game-list li .dot{background:#6ec6ff}.cat-ps4 .game-list li:hover{color:#6ec6ff}
+.cat-ps4pro .game-list li .num{color:#00e5ff}.cat-ps4pro .game-list li .dot{background:#00e5ff}.cat-ps4pro .game-list li:hover{color:#00e5ff}
+.cat-ps5 .game-list li .num{color:#b0b8ff}.cat-ps5 .game-list li .dot{background:#b0b8ff}.cat-ps5 .game-list li:hover{color:#c8d0ff}
+.cat-nintendo .game-list li .num{color:#ff7043}.cat-nintendo .game-list li .dot{background:#ff7043}.cat-nintendo .game-list li:hover{color:#ff8a65}
+
+/* strip */
+.strip{height:4px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--red),var(--accent));background-size:200% 100%;animation:shimmer 3s linear infinite}
+@keyframes shimmer{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+
+/* footer */
+footer{background:#050510;text-align:center;padding:50px 20px;border-top:1px solid rgba(255,255,255,.05)}
+footer .brand{font-family:'Bebas Neue',sans-serif;font-size:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+footer .contact-row{display:flex;justify-content:center;gap:24px;margin-top:20px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+footer .contact-row span{font-weight:700;color:var(--text)}
+footer .copy{margin-top:30px;font-size:12px;color:#444466}
+
+/* ===================== TOAST ===================== */
+#toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:linear-gradient(135deg,var(--green),#00a85a);color:#000;
+  padding:12px 24px;border-radius:50px;font-weight:900;font-size:13px;
+  opacity:0;transition:.3s;z-index:99999;pointer-events:none;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:600px){
+  .hero h1{font-size:60px}
+  .pricing-grid{grid-template-columns:1fr 1fr}
+  .tv-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .price-row{grid-template-columns:1fr;gap:6px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>🔐 ADMIN LOGIN</h2>
+    <p>Masuk untuk mengelola katalog ART Travel Game</p>
+    <input type="text" id="login-user" placeholder="Username" autocomplete="off">
+    <input type="password" id="login-pass" placeholder="Password">
+    <button class="login-btn" onclick="doLogin()">MASUK</button>
+    <div class="login-err" id="login-err">❌ Username atau password salah</div>
+  </div>
+</div>
+
+<!-- ============ ADMIN BAR ============ -->
+<div id="admin-bar" style="display:none">
+  <span class="ab-label">⚙️ ADMIN MODE</span>
+  <button class="ab-btn primary" onclick="openModal('prices')">💰 Edit Harga</button>
+  <button class="ab-btn primary" onclick="openModal('tv')">📺 Edit TV</button>
+  <button class="ab-btn primary" onclick="openModal('games')">🎮 Edit Game</button>
+  <button class="ab-btn primary" onclick="openModal('contact')">📱 Edit Kontak</button>
+  <button class="ab-btn neutral" onclick="resetData()">↩ Reset Default</button>
+  <button class="ab-btn danger" onclick="doLogout()">🔒 Logout</button>
+  <span id="admin-status">✅ Tersimpan!</span>
+</div>
+
+<!-- ============ MODAL ============ -->
+<div id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 id="modal-title">Edit</h2>
+    <p class="sub" id="modal-sub">Perubahan langsung tersimpan otomatis.</p>
+
+    <div class="tab-bar" id="tab-bar"></div>
+
+    <!-- PRICES PANEL -->
+    <div id="panel-prices" class="tab-panel">
+      <div id="price-rows"></div>
+      <button class="save-btn" onclick="savePrices()">💾 Simpan Harga</button>
+    </div>
+
+    <!-- TV PANEL -->
+    <div id="panel-tv" class="tab-panel">
+      <div class="form-row">
+        <div class="form-group">
+          <label>TV 43" — Harga</label>
+          <input type="text" id="tv43-price" placeholder="Rp 70.000">
+        </div>
+        <div class="form-group">
+          <label>TV 43" — Deskripsi</label>
+          <input type="text" id="tv43-desc" placeholder="Deskripsi TV 43 inch">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>TV 32" — Harga</label>
+          <input type="text" id="tv32-price" placeholder="Rp 50.000">
+        </div>
+        <div class="form-group">
+          <label>TV 32" — Deskripsi</label>
+          <input type="text" id="tv32-desc" placeholder="Deskripsi TV 32 inch">
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveTv()">💾 Simpan TV</button>
+    </div>
+
+    <!-- GAMES PANEL -->
+    <div id="panel-games" class="tab-panel">
+      <div id="games-editor"></div>
+      <button class="save-btn" onclick="saveGames()">💾 Simpan Semua Game</button>
+    </div>
+
+    <!-- CONTACT PANEL -->
+    <div id="panel-contact" class="tab-panel">
+      <div class="form-group">
+        <label>Nomor WhatsApp (tanpa +)</label>
+        <input type="text" id="c-wa" placeholder="6208113577750">
+      </div>
+      <div class="form-group">
+        <label>Username TikTok</label>
+        <input type="text" id="c-tt" placeholder="alt161718">
+      </div>
+      <div class="form-group">
+        <label>Teks Hero (Tagline)</label>
+        <textarea id="c-tagline" rows="2"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Teks Footer Hak Cipta</label>
+        <input type="text" id="c-copy" placeholder="© 2025 ART Travel Game">
+      </div>
+      <button class="save-btn" onclick="saveContact()">💾 Simpan Kontak</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PUBLIC SITE HTML ============ -->
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-badge">🎮 Rental Konsol Terpercaya</div>
+  <h1>ART TRAVEL<span>GAME</span></h1>
+  <p class="hero-sub" id="pub-tagline">Nikmati pengalaman gaming terbaik dengan konsol pilihan, koleksi game terlengkap, dan harga sewa paling kompetitif!</p>
+  <div class="hero-contact">
+    <a class="btn btn-wa" id="pub-wa-btn" href="#">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2C6.486 2 2.004 6.482 2.004 12c0 1.946.532 3.764 1.451 5.324L2 22l4.808-1.444C8.22 21.481 10.067 22 12.004 22c5.522 0 10.004-4.482 10.004-10S17.526 2 12.004 2zm0 18c-1.754 0-3.388-.483-4.786-1.32l-.342-.203-3.545 1.065 1.014-3.476-.222-.356C3.476 14.448 3 13.269 3 12c0-4.971 4.029-9 9.004-9C16.978 3 21 7.029 21 12s-4.022 9-8.996 9z"/></svg>
+      <span id="pub-wa-num">0811-3577-750</span>
+    </a>
+    <a class="btn btn-tt" id="pub-tt-btn" href="#">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.95a8.19 8.19 0 004.79 1.52V7.05a4.85 4.85 0 01-1.02-.36z"/></svg>
+      TikTok: <span id="pub-tt-handle">alt161718</span>
+    </a>
+  </div>
+</section>
+
+<div class="strip"></div>
+
+<!-- HARGA SEWA -->
+<section class="section">
+  <div class="section-title">
+    <div class="eyebrow" style="color:var(--accent)">💰 Daftar Tarif</div>
+    <h2>Harga Rental <span style="color:var(--accent)">Konsol</span></h2>
+    <p>Tarif sewa harian (24 jam) untuk hari kerja dan akhir pekan.</p>
+  </div>
+  <div class="pricing-grid" id="pub-prices"></div>
+</section>
+
+<div class="strip"></div>
+
+<!-- TV -->
+<section class="section">
+  <div class="section-title">
+    <div class="eyebrow" style="color:var(--green)">📺 Aksesori</div>
+    <h2>TV Ready untuk <span style="color:var(--green)">Konsol</span></h2>
+    <p>Lengkapi pengalaman gaming kamu dengan layar yang pas!</p>
+  </div>
+  <div class="tv-grid" id="pub-tv"></div>
+</section>
+
+<div class="strip"></div>
+
+<!-- GAME CATALOG -->
+<section class="catalog-section">
+  <div class="catalog-inner">
+    <div class="section-title" style="margin-bottom:60px">
+      <div class="eyebrow" style="color:var(--accent2)">🎮 Koleksi Game</div>
+      <h2>Katalog Game <span style="color:var(--accent2)">Terlengkap</span></h2>
+      <p>Ratusan judul game offline siap dimainkan. Temukan favorit kamu dari berbagai platform!</p>
+    </div>
+    <div id="pub-catalog"></div>
+  </div>
+</section>
+
+<div class="strip"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="brand">ART TRAVEL GAME</div>
+  <p style="color:var(--muted);margin-top:8px;font-size:14px">Rental Konsol • Sewa TV • Koleksi Game Terlengkap</p>
+  <div class="contact-row">
+    <div>📱 WhatsApp: <span id="footer-wa">0811-3577-750</span></div>
+    <div>🎵 TikTok: <span id="footer-tt">alt161718</span></div>
+    <div>📅 Pemesanan 24 Jam via WhatsApp</div>
+  </div>
+  <p class="copy" id="footer-copy">© 2025 ART Travel Game. Harga dapat berubah sewaktu-waktu.</p>
+</footer>
+
+<div id="toast">✅ Perubahan tersimpan!</div>
+
+<!-- ============ SCRIPT ============ -->
+<script>
+// ===================== DEFAULT DATA =====================
+const DEFAULT = {
+  contact: {
+    wa: '6208113577750',
+    tt: 'alt161718',
+    tagline: 'Nikmati pengalaman gaming terbaik dengan konsol pilihan, koleksi game terlengkap, dan harga sewa paling kompetitif!',
+    copy: '© 2025 ART Travel Game. Harga dapat berubah sewaktu-waktu.'
+  },
+  prices: [
+    {id:'ps3', label:'PlayStation 3', icon:'🎮', cls:'ps3', weekday:'70K', weekend:'80K', stableWeekend:false},
+    {id:'ps4', label:'PlayStation 4', icon:'🕹️', cls:'ps4', weekday:'100K', weekend:'120K', stableWeekend:false},
+    {id:'nintendo', label:'Nintendo Switch', icon:'🎮', cls:'nintendo', weekday:'100K', weekend:'120K', stableWeekend:false},
+    {id:'ps5', label:'PlayStation 5', icon:'🖲️', cls:'ps5', weekday:'180K', weekend:'180K', stableWeekend:true},
+    {id:'tv', label:'Sewa TV', icon:'📺', cls:'tv', weekday:'50K+', weekend:'32 / 43"', stableWeekend:false}
+  ],
+  tv: {
+    big: {size:'43"', label:'Inch — Layar Premium', price:'Rp 70.000', desc:'Opsi layar lebih besar untuk pengalaman visual konsol yang lebih maksimal. Cocok untuk PS4 Pro & PS5.'},
+    small: {size:'32"', label:'Inch — Pilihan Ekonomis', price:'Rp 50.000', desc:'Pilihan ekonomis yang tetap mumpuni untuk kebutuhan gaming standar. Cocok untuk PS3 & PS4.'}
+  },
+  consoles: [
+    {
+      id:'ps3', badge:'PS3', badgeCls:'badge-ps3', catCls:'cat-ps3', title:'PlayStation 3',
+      genres:[
+        {icon:'⚔️', name:'Aksi & Petualangan', games:['Afro Samurai','Army Of Two','Assasin Creed Rogue','Dark Souls','Dead Island Reptide','Devil May Cry 5','God Of War III','GTA V','GTA San Andreas','Killzone 3','Saints Row 2','The Amazing Spiderman','The Evil Within','Watch Dogs','RDR Undead Nightmare']},
+        {icon:'🔫', name:'Shooter & Perang', games:['Battlefield 4','Call Of Duty Ghost','Call Of Duty Black Ops III','Sniper Elite 3']},
+        {icon:'👊', name:'Pertarungan & Anime', games:['Tekken 6','Fight Night Round 4','MMA','Naruto Shippuden Ultimate Ninja Storm Revolution','Naruto Shippuden Ultimate Ninja Storm 3','Gundam Musou 3','Kamen Rider War Genesis']},
+        {icon:'⚽', name:'Olahraga & Balapan', games:['Fifa 2019','Fifa Street','Pes 26 Gembox Patch','Pes 25 Bitbox Patch','Motogp 24','F1 2014','Grid AutoSport','Blur','Cars 2','Nascar 14','NFS Most Wanted','NFS Rivals','WWE 2K17']},
+        {icon:'🌳', name:'Horor & Survival', games:['Resident Evil 5 Gold Edition','The Walking Dead Telitale Game Series']},
+        {icon:'👨‍👩‍👧', name:'Keluarga & Hiburan', games:['Angry Birds Trilogy','Little Big Planet 3','Monopoly Street','Minecraft','Rachet and Clank','Sonic','The Sims 3','Time Crisis 4']}
+      ]
+    },
+    {
+      id:'ps4_1tb', badge:'PS4', badgeCls:'badge-ps4', catCls:'cat-ps4', title:'PlayStation 4 — 1TB',
+      genres:[
+        {icon:'⚽', name:'Sepak Bola & Olahraga', games:['Pes 2026 Monster Patch','FC 26','Pes 2026 SGR Patch','UFC 4','NBA 2k26']},
+        {icon:'🏎️', name:'Balapan Intens', games:['Moto GP 25','Dirt 5','Monster Energy Supercross 6','CTR']},
+        {icon:'👊', name:'Pertarungan & Anime', games:['Tekken 7','Mortal Kombat 11','Naruto X Boruto Ultimate Ninja Storm']},
+        {icon:'🤝', name:'Co-op & Keluarga', games:['It Takes Two','Unravel Two','Sackboy','Sonic X Shadow Generations']}
+      ]
+    },
+    {
+      id:'ps4_2tb', badge:'PS4', badgeCls:'badge-ps4', catCls:'cat-ps4', title:'PlayStation 4 — 2TB Koleksi Terlengkap',
+      genres:[
+        {icon:'⚽', name:'Olahraga Terbaru', games:['Pes 2026 Monster Patch','Pes 2026 SGR Patch','FC 26','NBA 2K26','WWE 2K25','UFC 4','Top Spin 2K25']},
+        {icon:'🏎️', name:'Balapan Variatif', games:['Moto GP 25','Dirt 5','Ride 4','Hot Wheels Unleashed 2','Crash Team Racing','Supercross 6','Tony Hawks Pro Skeater 1+2','Pga Tour 2k23']},
+        {icon:'🗡️', name:'Aksi & Petualangan Epik', games:['God Of War Ragnarok','Ghost of Tshushima','GTA V','Uncharted the Lost Legacy','Need For Speed Heat','Final Fantasy VII Remake','Resident Evil 4','A Way Out']},
+        {icon:'👊', name:'Pertarungan & Anime', games:['Tekken 7','Mortal Kombat 11','Naruto X Boruto Ultimate Ninja Storm Connections','Demon Slayer - Kimetsu No Yaiba','One Piece Pirate Warriors 4','Captain Tsubasa','Upin Ipin Universe']},
+        {icon:'🤝', name:'Co-op & Keluarga', games:['It Takes Two','Unravel Two','Moving Out 2','Sackboy A Big Adventure']}
+      ]
+    },
+    {
+      id:'ps4pro', badge:'PS4 PRO', badgeCls:'badge-ps4', catCls:'cat-ps4pro', title:'PlayStation 4 Pro',
+      genres:[
+        {icon:'⚽', name:'Sepak Bola Terbaru', games:['PES 2026 Monster Patch','PES 2026 Sgr Patch','FC 26']},
+        {icon:'🏁', name:'Balapan Intensitas Tinggi', games:['Moto GP 25','Supercross 6','Dirt 5','CTR']},
+        {icon:'🥊', name:'Olahraga Lainnya', games:['Top Spin 2k25','UFC 4']},
+        {icon:'👊', name:'Pertarungan Ikonik', games:['Tekken 7','Naruto x Boruto Ultimate Ninja Storm Connection','Mortal Kombat 11']},
+        {icon:'🌍', name:'Open World & Co-op', games:['GTA V','It Takes Two','Unravel Two']},
+        {icon:'👨‍👩‍👧', name:'Keluarga', games:['Moving Out 2','Sackboy A Big Adventure']}
+      ]
+    },
+    {
+      id:'ps5', badge:'PS5', badgeCls:'badge-ps5', catCls:'cat-ps5', title:'PlayStation 5',
+      genres:[
+        {icon:'⚽', name:'Simulasi Sepak Bola', games:['Pes 21 Update 2026','FC 26','Efootball']},
+        {icon:'🏎️', name:'Balap & Olahraga Ekstrem', games:['Monster Energy Supercross 5','WRC 10','Motogp 25','Dirt 5','Tennis World Tour 2']},
+        {icon:'👊', name:'Pertarungan Intens', games:['Tekken 8','Mortal Kombat 1','UFC 5']},
+        {icon:'🗺️', name:'Petualangan Single-Player Epik', games:['Ghost of Tsushima','Guardian Of Galaxy','Ratchet & Clank']},
+        {icon:'🤝', name:'Co-op & Multiplayer', games:['A Way Out','It Takes Two','Moving Out','Unravel Two']},
+        {icon:'🎪', name:'Favorit Keluarga & Anime', games:['Roblox','Crash Bandicoot 4 Its About Time','Crash Team Racing Nitro Fueled','One Piece Pirates Warrior 4']}
+      ]
+    },
+    {
+      id:'nintendo', badge:'Nintendo', badgeCls:'badge-nintendo', catCls:'cat-nintendo', title:'Nintendo Switch',
+      genres:[
+        {icon:'🍄', name:'Dunia Mario & Party', games:['Mario Bros Wonder','Super Mario Odyssey','Mario Kart 8 Deluxe','Mario Golf Super Rush','Mario Tennis Aces','Super Mario Party Jamboree','Mario Party Superstars','Luigi Mansion 3']},
+        {icon:'🎉', name:'Party & Kompetisi Lokal', games:['Super Smash Bros Ultimate','Pico Park 2','Overcooked All You Can Eat','Moving Out 2','Unravel Two','It Takes Two','Fit Boxing 3']},
+        {icon:'🗡️', name:'Petualangan & RPG', games:['The Legend of Zelda','Pokemon Legend Arceus','Pikmin 4','Dynasty Warriors 9']},
+        {icon:'🏆', name:'Olahraga & Balapan', games:['FC 25','Moto GP 25','Nintendo Switch Sports','Ping Pong Arcade','Fishing Star World Tour']},
+        {icon:'💎', name:'Indie & Aksi', games:['Hollow Knight: Silksong','Hades','Cup Head','Sniper Elite 4','The House Of The Dead','Super Bear Adventure']},
+        {icon:'🌈', name:'Variasi Genre Kreatif', games:['Minecraft Legends','Harvest Moon The Wind Of Anthos','Just Dance 2022','Puyo Tetris','Crash Bandicoot','Sonic Shadows Generations','Hello Kitty Island Adventures']}
+      ]
+    }
+  ]
+};
+
+// ===================== STATE =====================
+let DATA = JSON.parse(JSON.stringify(DEFAULT));
+let isAdmin = false;
+let currentModal = null;
+
+// ===================== STORAGE HELPERS =====================
+function loadData(){
+  try{
+    const saved = localStorage.getItem('atg_data');
+    if(saved) DATA = JSON.parse(saved);
+  } catch(e){ DATA = JSON.parse(JSON.stringify(DEFAULT)); }
+}
+function saveData(){
+  localStorage.setItem('atg_data', JSON.stringify(DATA));
+  showToast();
+  const s = document.getElementById('admin-status');
+  s.style.display='inline';
+  setTimeout(()=>s.style.display='none', 2000);
+}
+
+// ===================== AUTH =====================
+const ADMIN_CREDS = {user:'admin', pass:'artgame2025'};
+
+function doLogin(){
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  if(u === ADMIN_CREDS.user && p === ADMIN_CREDS.pass){
+    isAdmin = true;
+    document.getElementById('login-screen').classList.remove('open');
+    document.getElementById('admin-bar').style.display='flex';
+    document.body.style.paddingBottom = '64px';
+  } else {
+    document.getElementById('login-err').style.display='block';
+    setTimeout(()=>document.getElementById('login-err').style.display='none', 2000);
+  }
+}
+function doLogout(){
+  isAdmin = false;
+  document.getElementById('admin-bar').style.display='none';
+  document.body.style.paddingBottom='0';
+  closeModal();
+}
+function resetData(){
+  if(!confirm('Reset semua data ke default? Perubahan akan hilang.')) return;
+  DATA = JSON.parse(JSON.stringify(DEFAULT));
+  localStorage.removeItem('atg_data');
+  renderAll();
+  showToast('↩ Data direset ke default!');
+}
+
+// login on secret click: triple-click footer brand
+let clickCount=0, clickTimer=null;
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.querySelector('footer .brand').addEventListener('click', ()=>{
+    clickCount++;
+    clearTimeout(clickTimer);
+    clickTimer = setTimeout(()=>{ clickCount=0; }, 600);
+    if(clickCount >= 3){
+      clickCount=0;
+      document.getElementById('login-screen').classList.add('open');
+    }
+  });
+});
+
+// ===================== MODAL =====================
+function openModal(type){
+  currentModal = type;
+  const overlay = document.getElementById('modal-overlay');
+  overlay.classList.add('open');
+  const titles = {prices:'💰 Edit Harga Rental', tv:'📺 Edit Sewa TV', games:'🎮 Edit Daftar Game', contact:'📱 Edit Kontak & Info'};
+  document.getElementById('modal-title').textContent = titles[type];
+
+  const panels = ['prices','tv','games','contact'];
+  panels.forEach(p=>{
+    document.getElementById('panel-'+p).classList.remove('active');
+  });
+  document.getElementById('panel-'+type).classList.add('active');
+  document.getElementById('tab-bar').innerHTML='';
+
+  if(type==='prices') buildPricesPanel();
+  if(type==='tv') buildTvPanel();
+  if(type==='games') buildGamesPanel();
+  if(type==='contact') buildContactPanel();
+}
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('open'); }
+document.getElementById('modal-overlay').addEventListener('click', function(e){ if(e.target===this) closeModal(); });
+
+// ===================== PRICES PANEL =====================
+function buildPricesPanel(){
+  const wrap = document.getElementById('price-rows');
+  wrap.innerHTML = DATA.prices.map((p,i)=>`
+    <div class="price-row">
+      <div class="console-lbl">${p.icon} ${p.label}</div>
+      <div class="form-group" style="margin:0">
+        <label>Weekday</label>
+        <input type="text" data-idx="${i}" data-field="weekday" value="${p.weekday}" placeholder="70K">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Weekend</label>
+        <input type="text" data-idx="${i}" data-field="weekend" value="${p.weekend}" placeholder="80K">
+      </div>
+    </div>
+  `).join('');
+}
+function savePrices(){
+  document.querySelectorAll('#price-rows input').forEach(inp=>{
+    const idx = parseInt(inp.dataset.idx);
+    const field = inp.dataset.field;
+    DATA.prices[idx][field] = inp.value.trim();
+  });
+  saveData();
+  renderPrices();
+}
+
+// ===================== TV PANEL =====================
+function buildTvPanel(){
+  document.getElementById('tv43-price').value = DATA.tv.big.price;
+  document.getElementById('tv43-desc').value = DATA.tv.big.desc;
+  document.getElementById('tv32-price').value = DATA.tv.small.price;
+  document.getElementById('tv32-desc').value = DATA.tv.small.desc;
+}
+function saveTv(){
+  DATA.tv.big.price = document.getElementById('tv43-price').value.trim();
+  DATA.tv.big.desc = document.getElementById('tv43-desc').value.trim();
+  DATA.tv.small.price = document.getElementById('tv32-price').value.trim();
+  DATA.tv.small.desc = document.getElementById('tv32-desc').value.trim();
+  saveData();
+  renderTv();
+}
+
+// ===================== GAMES PANEL =====================
+function buildGamesPanel(){
+  const wrap = document.getElementById('games-editor');
+  wrap.innerHTML = DATA.consoles.map((con, ci)=>`
+    <div class="game-editor-section">
+      <h4>${con.badge} — ${con.title}</h4>
+      ${con.genres.map((g, gi)=>`
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">${g.icon} ${g.name}</div>
+          <div class="game-list-edit" id="gl-${ci}-${gi}">
+            ${g.games.map((game, ii)=>`
+              <div class="game-item-row">
+                <input type="text" data-ci="${ci}" data-gi="${gi}" data-ii="${ii}" value="${game}">
+                <button class="del-btn" onclick="delGame(${ci},${gi},${ii})">✕</button>
+              </div>
+            `).join('')}
+          </div>
+          <button class="add-game-btn" onclick="addGame(${ci},${gi})">+ Tambah Game</button>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function addGame(ci, gi){
+  DATA.consoles[ci].genres[gi].games.push('Game Baru');
+  buildGamesPanel();
+  // scroll to newly added
+  const list = document.getElementById(`gl-${ci}-${gi}`);
+  if(list){ const last = list.lastElementChild; if(last){ last.querySelector('input').focus(); last.querySelector('input').select(); } }
+}
+function delGame(ci, gi, ii){
+  DATA.consoles[ci].genres[gi].games.splice(ii,1);
+  buildGamesPanel();
+}
+function saveGames(){
+  document.querySelectorAll('#games-editor input[data-ci]').forEach(inp=>{
+    const ci=parseInt(inp.dataset.ci), gi=parseInt(inp.dataset.gi), ii=parseInt(inp.dataset.ii);
+    DATA.consoles[ci].genres[gi].games[ii] = inp.value.trim();
+  });
+  saveData();
+  renderCatalog();
+}
+
+// ===================== CONTACT PANEL =====================
+function buildContactPanel(){
+  document.getElementById('c-wa').value = DATA.contact.wa;
+  document.getElementById('c-tt').value = DATA.contact.tt;
+  document.getElementById('c-tagline').value = DATA.contact.tagline;
+  document.getElementById('c-copy').value = DATA.contact.copy;
+}
+function saveContact(){
+  DATA.contact.wa = document.getElementById('c-wa').value.trim();
+  DATA.contact.tt = document.getElementById('c-tt').value.trim();
+  DATA.contact.tagline = document.getElementById('c-tagline').value.trim();
+  DATA.contact.copy = document.getElementById('c-copy').value.trim();
+  saveData();
+  renderContact();
+}
+
+// ===================== RENDERERS =====================
+function renderPrices(){
+  const grid = document.getElementById('pub-prices');
+  grid.innerHTML = DATA.prices.map(p=>`
+    <div class="price-card ${p.cls}">
+      <span class="console-icon">${p.icon}</span>
+      <div class="console-name">${p.label}</div>
+      <div class="weekday-price" style="color:${priceColor(p.cls)}">${p.weekday}</div>
+      <div class="unit">/ 24 jam (Weekday)</div>
+      <div class="divider"></div>
+      <div class="weekend-label">⭐ Weekend</div>
+      ${p.stableWeekend
+        ? '<div class="badge-stable">Harga Tetap Stabil</div>'
+        : `<div class="weekend-price" style="color:${weekendColor(p.cls)}">${p.weekend}</div>`}
+    </div>
+  `).join('');
+}
+function priceColor(cls){ return {ps3:'#1a9eef',ps4:'#4d9fff',nintendo:'#ff6d00',ps5:'var(--text)',tv:'var(--green)'}[cls]||'var(--accent)'; }
+function weekendColor(cls){ return {nintendo:'var(--gold)',tv:'var(--green)'}[cls]||'var(--gold)'; }
+
+function renderTv(){
+  const wrap = document.getElementById('pub-tv');
+  const b = DATA.tv.big, s = DATA.tv.small;
+  wrap.innerHTML = `
+    <div class="tv-card big">
+      <div class="tv-size">${b.size}</div>
+      <div class="tv-label">${b.label}</div>
+      <div class="tv-price">${b.price}</div>
+      <div class="tv-desc">${b.desc}</div>
+    </div>
+    <div class="tv-card small">
+      <div class="tv-size">${s.size}</div>
+      <div class="tv-label">${s.label}</div>
+      <div class="tv-price">${s.price}</div>
+      <div class="tv-desc">${s.desc}</div>
+    </div>
+  `;
+}
+
+function renderCatalog(){
+  const wrap = document.getElementById('pub-catalog');
+  wrap.innerHTML = DATA.consoles.map(con=>{
+    const totalGames = con.genres.reduce((a,g)=>a+g.games.length,0);
+    return `
+      <div class="console-catalog ${con.catCls}">
+        <div class="console-header">
+          <div class="console-badge ${con.badgeCls}">${con.badge}</div>
+          <div class="console-title-text">${con.title}</div>
+          <div class="console-count">${totalGames} Judul Game</div>
+        </div>
+        <div class="genre-grid">
+          ${con.genres.map(g=>`
+            <div class="genre-card">
+              <div class="genre-icon">${g.icon}</div>
+              <div class="genre-name">${g.name}</div>
+              <ul class="game-list">
+                ${g.games.map((game,i)=>`
+                  <li><span class="num">${String(i+1).padStart(2,'0')}</span><span class="dot"></span>${escHtml(game)}</li>
+                `).join('')}
+              </ul>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderContact(){
+  const c = DATA.contact;
+  const waNum = c.wa.replace(/^62/,'0').replace(/(\d{4})(\d{4})(\d+)/,'$1-$2-$3');
+  document.getElementById('pub-tagline').textContent = c.tagline;
+  document.getElementById('pub-wa-num').textContent = waNum;
+  document.getElementById('pub-wa-btn').href = 'https://wa.me/'+c.wa;
+  document.getElementById('pub-tt-handle').textContent = c.tt;
+  document.getElementById('pub-tt-btn').href = 'https://tiktok.com/@'+c.tt;
+  document.getElementById('footer-wa').textContent = waNum;
+  document.getElementById('footer-tt').textContent = c.tt;
+  document.getElementById('footer-copy').textContent = c.copy;
+}
+
+function renderAll(){ renderPrices(); renderTv(); renderCatalog(); renderContact(); }
+
+function escHtml(str){ return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ===================== TOAST =====================
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg || '✅ Perubahan tersimpan!';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ===================== INIT =====================
+loadData();
+renderAll();
+</script>
+</body>
+</html>
